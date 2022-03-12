@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Draw</title>
+  <link href="vendors/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <script src="vendors/jquery/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="vendors/paper/paper-full.min.js"></script>
+  
+</head>
+<body>
+  
+  <!-- Please remove web socket demo before submission -->
+  
+
+  <!-- Please remove drawing demo title before submission -->
+  <!-- You may make the drawing larger -->
+  
+
+  <canvas id="myCanvas" width="700px" height="700px"></canvas>
+  
+  
+  <script>
+    window.onload = function() {
+
+      // click and drag to draw
+      function basicDrawingTool(){
+        
+    		var tool = new paper.Tool();
+    		var path;
+    
+    		// Define a mousedown and mousedrag handler
+    		tool.onMouseDown = function(event) {
+    			path = new paper.Path();
+    			path.strokeColor = 'black';
+    			path.add(event.point);
+
+    		}
+    
+    		tool.onMouseDrag = function(event) {
+    			path.add(event.point);
+
+    		}      
+      }
+
+      function getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+      }
+      
+
+      function drawWebsocket(){
+        var socket = new WebSocket("wss://ws-server-template.DenisIvanov26.repl.co", "very-good-protocol");
+        socket.onopen = function(){
+          $("#status").append("[open] websocket connection opened")
+          $("#status").append($("<br>"));
+        }
+//--------------------------------------------------------        
+    
+        var tool = new paper.Tool();
+        var colors = ["black", "green", "red", "blue", "purple", "yellow"];
+        var u = getRandomInt(5);
+        var path;
+        var point;
+        // Event listeners
+        tool.onMouseDown = function(event) {
+              // Send a message from this browser window
+              //socket.send(event.point.x + "-" + event.point.y);
+          path = new paper.Path();
+          console.log(colors[u]);
+    			path.strokeColor = colors[u];
+    			path.add(event.point);
+          var s = event.point.x + "," + event.point.y + ',' + colors[u]
+          socket.send(s)
+        }
+        
+        tool.onMouseDrag = function(event) {
+              // Send a message from this browser window
+              //socket.send(event.point.x + "-" + event.point.y);
+          path.add(event.point);
+          var s = event.point.x + "," + event.point.y + ',' + colors[u];
+          socket.send(s)
+          //console.log(s)
+        }
+
+        
+        var path2 = new paper.Path();
+        socket.onmessage = function(message){
+            
+          //console.log(message)
+          var temp = message.data.split(",");
+          //console.log(temp)
+          point = new paper.Point(parseFloat(temp[0]), parseFloat(temp[1]));
+          if (temp[2] != colors[u]){
+          //path = new paper.Path();
+    			path2.strokeColor = temp[2];
+    			path2.add(point);
+          }else {
+            path2 = new paper.Path();
+          }
+        }
+        
+        
+       /* if (temp[2] != colors[u]){
+        if prev == temp[2]{
+          path.add
+          
+        }else{
+          path2 = new paper.path()
+          prev = temp[2]
+          path2 = new stroke
+        }*/
+      }
+
+      
+
+      // type in chat and press enter for demo
+      function basicWebsocketChat(){
+          // The p4 starter code below is based on @MrEconomical (https://replit.com/@MrEconomical)'s ws-server-template example
+        
+        // Establish websocket connection
+        var socket = new WebSocket("wss://ws-server-template.DenisIvanov26.repl.co", "very-good-protocol");
+        
+        socket.onopen = function(){
+          $("#status").append("[open] websocket connection opened")
+          $("#status").append($("<br>"));
+        }
+        
+        socket.onmessage = function(message){
+          // Receive a message from websocket server
+          $("#status").append(`[receive] ${message.data}`);
+          $("#status").append($("<br>"));
+        }
+        
+        socket.onclose = function(){
+          $("#status").append("[close] websocket connection closed");
+          $("#status").append($("<br>"));
+        }
+        
+        // Event listeners
+        $('#input').on("keypress", function(event){
+          if (event.key === "Enter") {
+        
+              // Send a message from this browser window
+              socket.send($('#input').val());
+              $("#status").append(`[send] ${$('#input').val()}`);
+              $("#status").append($("<br>"));
+              $('#input').val("");
+          }
+        });
+      }
+
+      function init(){
+        // setup paper.js
+        paper.setup('myCanvas');
+        //basicDrawingTool();
+        //basicWebsocketChat();
+        drawWebsocket();
+      }
+
+      init();
+      
+      
+      
+    }
+
+</script>
+</body>
+</html>
